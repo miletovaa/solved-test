@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { fetchData } from "./api/baseApi"
 
 function App() {
@@ -6,9 +6,8 @@ function App() {
 
   const loadPosts = async () => {
     try {
-      const posts = await fetchData('posts')
-      setPosts(posts)
-      console.log(posts)
+      const result = await fetchData('posts')
+      if (!posts) setPosts(result.map(post => ({ ...post, showComments: false })))
     } catch (error) {
       console.error('Failed to load posts:', error)
     }
@@ -16,8 +15,10 @@ function App() {
 
   const loadComments = async (postId) => {
     try {
+      // avoiding unnecessary API calls if comments are already loaded
+      if (posts.find(post => post.id === postId)?.comments?.length > 0) return
+
       const comments = await fetchData(`posts/${postId}/comments`)
-      console.log(comments)
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId ? { ...post, comments } : post
@@ -28,6 +29,19 @@ function App() {
     }
   }
 
+  const toggleComments = (postId) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post => 
+        post.id === postId ? { ...post, showComments: !post.showComments } : post
+      )
+    )
+  }
+
+  // was used for debugging
+  useEffect(() => {
+    console.log(posts)
+  }, [posts])
+
   return (
     <>
       <button onClick={loadPosts}>
@@ -35,10 +49,22 @@ function App() {
       </button>
       {posts && (
         <ul>
-          {posts.map(post => (
+          {/* destructed post data for better readability */}
+          {/* Post listing */}
+          {posts.map(({ id, title, comments, showComments }) => (
             <>
-              <li key={post.id} onClick={() => loadComments(post.id)}>{post.title}</li>
-              {post?.comments && post.comments.map(comment => (
+              <li key={id} onClick={() => loadComments(id)}>
+                {title}
+                <button 
+                  onClick={() => { 
+                    loadComments(id); 
+                    toggleComments(id); 
+                  }}
+                >
+                  {posts.find(post => post.id === id)?.showComments ? '-' : '+'}
+                </button>
+              </li>
+              {(comments && showComments) && comments.map(comment => (
                 <ul key={comment.id}>
                   <li>{comment.body}</li>
                 </ul>
