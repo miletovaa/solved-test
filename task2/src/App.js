@@ -1,24 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react"
+import { fetchData } from "./api/baseApi"
 
 function App() {
+  const [posts, setPosts] = useState(null)
+
+  const loadPosts = async () => {
+    try {
+      const posts = await fetchData('posts')
+      setPosts(posts)
+      console.log(posts)
+    } catch (error) {
+      console.error('Failed to load posts:', error)
+    }
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <button onClick={loadPosts}>
+        Load Posts
+      </button>
+      {posts && (
+        <ul>
+          {posts.map(post => (
+            <li key={post.id}>{post.title}</li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
