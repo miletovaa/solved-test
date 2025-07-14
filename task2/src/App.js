@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { fetchData } from "./api/baseApi"
 
 function App() {
@@ -36,11 +36,6 @@ function App() {
       )
     )
   }
-
-  // was used for debugging
-  useEffect(() => {
-    console.log(posts)
-  }, [posts])
 
   return (
     <>
